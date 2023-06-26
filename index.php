@@ -35,6 +35,12 @@
                     <input type="text" class="form-control" id="keyword" name="keyword" required>
                 </div>
 
+                <div class="form-group">
+                    <label for="destination">Ruta de destino:</label>
+                    <input type="text" class="form-control" id="destination" name="destination" required readonly>
+                    <button type="button" class="btn btn-primary mt-2" onclick="selectDestination()">Seleccionar ruta</button>
+                </div>
+
                 <button type="submit" class="btn btn-primary">Subir archivos</button>
             </form>
 
@@ -42,7 +48,7 @@
             if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $keyword = $_POST['keyword'];
                 $files = $_FILES['pdfFiles'];
-                $folderPath = 'pdfs/';
+                $destination = $_POST['destination'];
                 $matchedFiles = [];
 
                 foreach ($files['tmp_name'] as $key => $tmpName) {
@@ -52,14 +58,15 @@
                     if (pathinfo($fileName, PATHINFO_EXTENSION) === 'pdf') {
                         $pdfContent = file_get_contents($fileTmp);
                         if (strpos($pdfContent, $keyword) !== false) {
-                            move_uploaded_file($fileTmp, $folderPath . $fileName);
+                            $newFilePath = $destination . '/' . $fileName;
+                            move_uploaded_file($fileTmp, $newFilePath);
                             $matchedFiles[] = $fileName;
                         }
                     }
                 }
 
                 if (!empty($matchedFiles)) {
-                    $message = 'Los archivos PDF se han analizado y los que contienen la palabra clave se han guardado en la carpeta "pdfs".';
+                    $message = 'Los archivos PDF se han analizado y los que contienen la palabra clave se han guardado en la ruta especificada.';
                 }
             }
             ?>
@@ -74,6 +81,15 @@
             <?php endif; ?>
         </div>
     </div>
+
+    <script>
+        function selectDestination() {
+            var destinationInput = document.getElementById('destination');
+            window.showDirectoryPicker().then(function(directory) {
+                destinationInput.value = directory.name;
+            });
+        }
+    </script>
 
     <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@1.16.1/dist/umd/popper.min.js"></script>
